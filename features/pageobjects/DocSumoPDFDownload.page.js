@@ -16,6 +16,7 @@ var parentGUID;
 
 class PdfDownload {
 
+    //Locators which could be reused 
     get tools() {
         return $('#w-dropdown-toggle-1');
     }
@@ -35,6 +36,8 @@ class PdfDownload {
     get splitPdfButton() {
         return $('//button[contains(.,"Split PDF")]');
     }
+
+    //Methods
 
     async open() {
         await browser.pause();
@@ -80,7 +83,7 @@ class PdfDownload {
     }
 
     async selectPdfFileToUpload() {
-
+        //Path of the file to be uploaded
         const filePath = path.join(__dirname, '../../testdata/SamplePdf.pdf');
         const remoteFilePath = await browser.uploadFile(filePath);
 
@@ -110,6 +113,7 @@ class PdfDownload {
 
     async verifySplitDocumentLoads() {
 
+        //This is checking if the page is loading after performing the upload
         await browser.pause(2000);
         let splitDocument;
         splitDocument = await $('(//div[@id = "main-document"])[1]');
@@ -127,9 +131,14 @@ class PdfDownload {
         await browser.pause(5000);
         let frame = await $('//div[@id = "review-popup"]//iframe');
         await frame.waitForExist();
+
+        //The element to be interacted is wrapped within an iframe
+        //Hence we are switching to the iframe
         await browser.switchToFrame(frame);
         cucumberJson.attach("Switched to iFrame: ");
         await browser.pause(5000);
+
+        //This will count the number of pages we have uploaded from the pdf
         pages = await $$('//p[@class = "FpmCk"]');
         pageCount = await pages.length;
         cucumberJson.attach("Number of pages in the document " + pageCount);
@@ -137,6 +146,8 @@ class PdfDownload {
         cucumberJson.attach("Current Url: " + currentUrl);
         let pageCountCorner;
 
+
+        //Here we are trying to get the count of pages from the top right corner of the page
         var getHTML = await $('.f2b2c').getHTML();
         // Using webscraping library to get Text from an non interactable web element 
         const loc = cheerio.load(getHTML);
@@ -174,6 +185,8 @@ class PdfDownload {
     }
 
     async clickOnSplitPdfButton() {
+
+        // This will click Split pdf button to download the zipped file
         let button;
         await this.splitPdfButton.waitForExist();
         button = await this.splitPdfButton.getText();
@@ -195,8 +208,7 @@ class PdfDownload {
         }      
         else {
             assert.fail("Zip file not loaded: " + error)
-        }
-        
+        } 
     }
 
     async unzipTheDownloadedFile() {
@@ -222,6 +234,8 @@ class PdfDownload {
     }
 
     async countTheNumberOfDocuments() {
+
+        // This method is counting the number of Documents in the unzipped folder
         await browser.pause(2000);
         let folderPath = path.join(__dirname, '../../testdata/downloads/SamplePdf');
         let fileCount = fs.readdirSync(folderPath).length;
@@ -236,12 +250,12 @@ class PdfDownload {
     }
 
     async verifyExtensionOfDocuments() {
+        // Verifying if the filename contains extension as pdf
         let folderPath = path.join(__dirname, '../../testdata/downloads/SamplePdf');
         let fileNames = fs.readdirSync(folderPath);
 
         fileNames.forEach( (fileName) => {
-            let fileExtension = path.extname(fileName);
-            
+            let fileExtension = path.extname(fileName);      
             if ( fileExtension == '.pdf') {
                 cucumberJson.attach('The file holds valid extension' + fileExtension);
             }
